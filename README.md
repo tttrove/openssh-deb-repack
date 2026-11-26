@@ -1,6 +1,6 @@
 # OpenSSH 上游包同步
 
-自动跟踪 [boypt/openssh-deb](https://github.com/boypt/openssh-deb) 的 release，把上游 Ubuntu amd64 包重新打包成带本仓库 `universal-install.sh` 的 `.tgz`，并发布到本仓库的 GitHub Release。
+自动跟踪 [boypt/openssh-deb](https://github.com/boypt/openssh-deb) 的 release，把上游 release 里的所有 `.tar.gz` 包（amd64/arm64、Ubuntu/Debian）重新打包成带本仓库 `universal-install.sh` 的 `.tgz`，并发布到本仓库的 GitHub Release。
 
 ## 目录结构
 
@@ -9,6 +9,8 @@
 ├── .github/workflows/sync-upstream.yml   # GitHub Actions 工作流
 ├── scripts/sync-upstream.sh              # 实际执行同步的脚本
 ├── universal-install.sh                  # 通用安装脚本（单一维护点）
+├── .gitattributes                        # 强制 LF 行尾
+├── .gitignore                            # 忽略构建产物
 └── README.md
 ```
 
@@ -42,10 +44,10 @@ openssh-v10.6p2-1_b1-bookworm-arm64.tgz
 
 Release 还会附带 `SHA256SUMS`。每个 tgz 内包含：
 
-- 5 个 deb
+- 5 个 deb（当前上游结构）
 - 本仓库最新的 `universal-install.sh`（重命名为 `install.sh`）
 
-目标机上解压后执行 `bash install.sh` 即可。
+Ubuntu `bionic` / `focal` / `jammy` / `noble` 目标机解压后执行 `bash install.sh` 即可。Debian 包目前只做打包存档，安装脚本会因 OS 检查退出。
 
 ## 首次使用
 
@@ -68,24 +70,27 @@ Release 还会附带 `SHA256SUMS`。每个 tgz 内包含：
 
 ## 本地测试
 
-需要本机已安装并登录 `gh`：
+需要本机已安装并登录 `gh`。先用 `DRY_RUN=true` 只构建不发布：
 
 ```bash
 gh auth status
 
+DRY_RUN=true \
 TARGET_REPO=<owner>/<repo> \
 UPSTREAM_REPO=boypt/openssh-deb \
 bash scripts/sync-upstream.sh
 ```
 
+确认 `dist/` 里的产物无误后，去掉 `DRY_RUN=true` 再执行一次才会发布 Release。也可以用 `ASSET_PATTERN` 只处理部分资产，例如 `ASSET_PATTERN='openssh-v*-jammy-amd64.tar.gz'`。
+
 脚本会：
 
 1. 读取上游最新 tag（或 `UPSTREAM_TAG` 指定的 tag）。
 2. 如果本仓库已存在同 tag 的 Release，直接跳过。
-3. 下载 `openssh-v*-<codename>-amd64.tar.gz`。
-4. 解压、只保留 5 个 deb、注入 `universal-install.sh`。
-5. 重打成 `openssh-v*-<codename>-amd64.tgz`。
-6. 生成 `SHA256SUMS` 和 release notes，发布 Release。
+3. 下载所有匹配 `ASSET_PATTERN` 的 `.tar.gz`（默认全部）。
+4. 解压、只保留 deb、注入 `universal-install.sh`。
+5. 重打成同名 `.tgz`。
+6. 生成 `SHA256SUMS` 和 release notes；`DRY_RUN=true` 时到此为止，否则发布 Release。
 
 ## 维护说明
 
