@@ -39,16 +39,13 @@
 `openssh-v<version>-<codename>-<arch>.tgz`。版本号、codename、架构都以当前
 Release 的实际资产为准，README 不固定具体版本。
 
-当前上游覆盖的发行版和架构：
+支持的 codename、架构和版本以最新 Release 的实际资产为准：
 
-| 发行版 | codename | 架构 |
-| :--- | :--- | :---: |
-| Ubuntu 18.04 / 20.04 / 22.04 / 24.04 | bionic / focal / jammy / noble | amd64 / arm64 |
-| Debian 10 / 11 / 12 / 13 | buster / bullseye / bookworm / trixie | amd64 / arm64 |
+https://github.com/tttrove/openssh-deb-repack/releases/latest
 
 Release 还会附带 `SHA256SUMS`。每个 tgz 内包含：
 
-- 5 个 deb（当前上游结构）
+- 上游包内的全部 deb
 - 本仓库最新的 `universal-install.sh`（重命名为 `install.sh`）
 
 Ubuntu `bionic` / `focal` / `jammy` / `noble` 目标机解压后执行 `bash install.sh` 即可。Debian 包目前只做打包存档，安装脚本会因 OS 检查退出。
@@ -100,7 +97,7 @@ bash scripts/sync-upstream.sh
 
 - 修改安装逻辑时只改 `universal-install.sh`，提交后下次构建会自动注入。
 - 上游 asset 是 `.tar.gz`，本仓库统一输出 `.tgz`。
-- 默认处理上游 release 里的所有 `.tar.gz`，包括 amd64/arm64 和 Ubuntu/Debian 各 codename。
+- 默认处理上游 release 里的所有 `.tar.gz` 资产，不筛选架构或 codename。
 - `universal-install.sh` 目前只识别 Ubuntu `bionic` / `focal` / `jammy` / `noble`；Debian 包也会被注入脚本，但执行时会因 OS 检查退出。
 - 只想处理部分资产时，手动触发并修改 `asset_pattern`，例如 `openssh-v*-jammy-amd64.tar.gz`。
 - Release tag 与上游一致，已存在时跳过；需要重建时勾选 `force`。
