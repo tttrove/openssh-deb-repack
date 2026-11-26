@@ -29,18 +29,22 @@
 
 ## 输出资产
 
-上游 release 里的每个 `.tar.gz` 都会生成一个同名 `.tgz`，不区分 amd64/arm64 或 Ubuntu/Debian：
+每个上游 `.tar.gz` 资产都会生成一个同名 `.tgz`，命名规则固定为：
 
 ```
-openssh-v10.6p2-1_b1-bionic-amd64.tgz
-openssh-v10.6p2-1_b1-bionic-arm64.tgz
-openssh-v10.6p2-1_b1-focal-amd64.tgz
-openssh-v10.6p2-1_b1-jammy-amd64.tgz
-openssh-v10.6p2-1_b1-noble-amd64.tgz
-openssh-v10.6p2-1_b1-bookworm-amd64.tgz
-openssh-v10.6p2-1_b1-bookworm-arm64.tgz
-...
+<upstream-asset-name>.tgz
 ```
+
+例如上游的 `openssh-v<version>-<codename>-<arch>.tar.gz` 会生成
+`openssh-v<version>-<codename>-<arch>.tgz`。版本号、codename、架构都以当前
+Release 的实际资产为准，README 不固定具体版本。
+
+当前上游覆盖的发行版和架构：
+
+| 发行版 | codename | 架构 |
+| :--- | :--- | :---: |
+| Ubuntu 18.04 / 20.04 / 22.04 / 24.04 | bionic / focal / jammy / noble | amd64 / arm64 |
+| Debian 10 / 11 / 12 / 13 | buster / bullseye / bookworm / trixie | amd64 / arm64 |
 
 Release 还会附带 `SHA256SUMS`。每个 tgz 内包含：
 
@@ -99,4 +103,4 @@ bash scripts/sync-upstream.sh
 - 默认处理上游 release 里的所有 `.tar.gz`，包括 amd64/arm64 和 Ubuntu/Debian 各 codename。
 - `universal-install.sh` 目前只识别 Ubuntu `bionic` / `focal` / `jammy` / `noble`；Debian 包也会被注入脚本，但执行时会因 OS 检查退出。
 - 只想处理部分资产时，手动触发并修改 `asset_pattern`，例如 `openssh-v*-jammy-amd64.tar.gz`。
-- Release tag 与上游一致（如 `v10.6p2-1_b1`），已存在时跳过；需要重建时勾选 `force`。
+- Release tag 与上游一致，已存在时跳过；需要重建时勾选 `force`。
