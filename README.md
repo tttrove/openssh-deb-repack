@@ -50,6 +50,22 @@ Release 还会附带 `SHA256SUMS`。每个 tgz 内包含：
 
 Ubuntu `bionic` / `focal` / `jammy` / `noble` 目标机解压后执行 `bash install.sh` 即可。Debian 包目前只做打包存档，安装脚本会因 OS 检查退出。
 
+## 脚本会修改的 SSH 配置
+
+`universal-install.sh` 在安装完成后会恢复升级前的 `sshd_config`，然后做以下策略校正：
+
+| 配置 | 作用 |
+|---|---|
+| `PermitRootLogin yes` | 避免新版本默认 `prohibit-password` 导致 root 无法登录，保证生产环境远程运维通道 |
+| `UsePAM yes` | 保持 PAM 账户与会话管理 |
+| `HostKeyAlgorithms +ssh-rsa` | 在默认算法基础上附加 `ssh-rsa`，兼容旧客户端；`+` 表示附加，不替换默认算法 |
+
+同时会删除旧的 `KexAlgorithms`、`GSSAPIKexAlgorithms`、`HostKeyAlgorithms` 行，避免旧算法清单覆盖新版默认算法集。
+
+这些是生产环境的运维兜底策略，不是密码、密钥或账号凭据。脚本不包含任何主机地址、用户名或密码。使用前建议先在测试机验证，确认符合你的 SSH 安全策略。
+
+> 本项目不是 boypt/openssh-deb 的官方项目，只是基于其 release 重新打包并注入安装脚本。
+
 ## 首次使用
 
 1. 在 GitHub 创建仓库，把本目录推上去：
