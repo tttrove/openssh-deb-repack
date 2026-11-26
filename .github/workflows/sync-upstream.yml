@@ -1,0 +1,47 @@
+name: Sync upstream OpenSSH packages
+
+on:
+  schedule:
+    # 每天 UTC 02:00（北京时间 10:00）检查一次上游 release
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: "上游 release tag，留空表示 latest"
+        required: false
+        default: ""
+      asset_pattern:
+        description: "要处理的 asset 通配符（默认全部 .tar.gz）"
+        required: false
+        default: "openssh-v*-*.tar.gz"
+      force:
+        description: "即使本仓库已存在同 tag 的 release 也重新构建并覆盖"
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: openssh-upstream-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync upstream release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          UPSTREAM_REPO: boypt/openssh-deb
+          UPSTREAM_TAG: ${{ github.event.inputs.upstream_tag }}
+          TARGET_REPO: ${{ github.repository }}
+          ASSET_PATTERN: ${{ github.event.inputs.asset_pattern }}
+          FORCE: ${{ github.event.inputs.force }}
+        run: bash scripts/sync-upstream.sh
